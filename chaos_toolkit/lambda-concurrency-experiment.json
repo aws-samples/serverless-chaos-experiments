@@ -1,0 +1,76 @@
+{
+  "title": "Alter lambda concurrency",
+  "description": "Lambda concurrency test using the chaostoolkit",
+  "configuration": {
+    "lambda_function": {
+      "type": "env",
+      "key": "LAMBDA_FUNCTION_NAME"
+    },
+    "alarm": {
+      "type": "env",
+      "key": "ALARM_NAME"
+    },
+    "concurrency": {
+      "type": "env",
+      "key": "CONCURRENCY",
+      "env_var_type": "int",
+      "default": 10
+    },
+    "duration": {
+      "key": "DURATION",
+      "type": "env",
+      "env_var_type": "int",
+      "default": 300
+    }
+  },
+  "steady-state-hypothesis": {
+    "title": "Lambda function can handle all requests even when throttled!",
+    "probes": [
+      {
+        "name": "get-alarm-state-value",
+        "type": "probe",
+        "provider": {
+          "type": "python",
+          "module": "chaosaws.cloudwatch.probes",
+          "func": "get_alarm_state_value",
+          "arguments": {
+            "alarm_name": "${alarm}"
+          }
+        },
+        "tolerance": "OK"
+      }
+    ]
+  },
+  "method": [
+    {
+      "name": "put-function-concurrency",
+      "type": "action",
+      "provider": {
+        "type": "python",
+        "module": "chaosaws.awslambda.actions",
+        "func": "put_function_concurrency",
+        "arguments": {
+          "function_name": "${lambda_function}",
+          "concurrent_executions": "${concurrency}"
+        }
+      },
+      "pauses": {
+        "after": "${duration}"
+      }
+    }
+  ],
+  "rollbacks": [
+    {
+      "name": "delete-function-concurrency",
+      "type": "action",
+      "provider": {
+        "type": "python",
+        "module": "chaosaws.awslambda.actions",
+        "func": "delete_function_concurrency",
+        "arguments": {
+          "function_name": "${lambda_function}"
+        }
+      }
+    }
+  ]
+}

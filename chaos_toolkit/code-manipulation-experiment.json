@@ -1,0 +1,93 @@
+{
+  "title": "Code manipulation chaos",
+  "description": "Inject chaos into the Lambda function handler code using the chaostoolkit",
+  "configuration": {
+    "parameter_name": {
+      "type": "env",
+      "key": "PARAMETER_NAME"
+    },
+    "alarm": {
+      "type": "env",
+      "key": "ALARM_NAME"
+    },
+    "fault_type": {
+      "type": "env",
+      "key": "CHAOS_TYPE",
+      "default": "exception"
+    },
+    "chaos_enabled": {
+      "type": "env",
+      "key": "ENABLED",
+      "default": "false"
+    },
+    "delay": {
+      "type": "env",
+      "key": "DELAY",
+      "default": "200"
+    },
+    "error_code": {
+      "type": "env",
+      "key": "ERROR_CODE",
+      "default": "404"
+    },
+    "exception_msg": {
+      "type": "env",
+      "key": "EXCEPTION_MSG",
+      "default": "This is chaos."
+    },
+    "rate": {
+      "type": "env",
+      "key": "RATE",
+      "default": "1"
+    },
+    "duration": {
+      "key": "DURATION",
+      "type": "env",
+      "env_var_type": "int",
+      "default": 300
+    }
+  },
+  "steady-state-hypothesis": {
+    "title": "Lambda function can handle all requests even when chaos is injected into it.",
+    "probes": [
+      {
+        "name": "get-alarm-state-value",
+        "type": "probe",
+        "provider": {
+          "type": "python",
+          "module": "chaosaws.cloudwatch.probes",
+          "func": "get_alarm_state_value",
+          "arguments": {
+            "alarm_name": "${alarm}"
+          }
+        },
+        "tolerance": "OK"
+      }
+    ]
+  },
+  "method": [
+    {
+      "type": "action",
+      "name": "Inject chaos into Lambda",
+      "provider": {
+        "type": "process",
+        "path": "aws",
+        "arguments": "ssm put-parameter --name ${parameter_name} --type String --overwrite --value '{ \"fault_type\": \"${fault_type}\", \"is_enabled\": false, \"delay\": ${delay}, \"error_code\": ${error_code}, \"exception_msg\": \"${exception_msg}\", \"rate\": ${rate}}'"
+      },
+      "pauses": {
+        "after": "${duration}"
+      }
+    }
+  ],
+  "rollbacks": [
+    {
+      "type": "action",
+      "name": "Stop chaos",
+      "provider": {
+        "type": "process",
+        "path": "aws",
+        "arguments": "ssm put-parameter --name ${parameter_name} --type String --overwrite --value '{\"isEnabled\": false}'"
+      }
+    }
+  ]
+}
