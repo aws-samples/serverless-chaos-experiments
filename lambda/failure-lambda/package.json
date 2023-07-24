@@ -1,0 +1,13 @@
+{
+  "name": "lambda_handler",
+  "version": "1.0.0",
+  "description": "Simple serverless Lambda function with chaos",
+  "main": "lambda_function.js",
+  "dependencies": {
+    "failure-lambda": "^0.4.4"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
