@@ -38,7 +38,7 @@ send_batch_messages() {
 # Main script
 main() {
   echo "Generating and sending messages to SQS queue..."
-  for ((i = 1; i <= 50; i++)); do
+  for ((i = 1; i <= 200; i++)); do
     generate_message
   done | send_batch_messages
 

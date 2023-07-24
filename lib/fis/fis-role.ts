@@ -1,71 +1,37 @@
-import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
-import { StackProps, Stack } from "aws-cdk-lib";
+import { StackProps } from "aws-cdk-lib";
 import { aws_iam as iam } from "aws-cdk-lib";
+import * as cdk from "aws-cdk-lib/core";
 
-export class FisRole extends Stack {
+export class FisRole extends Construct {
 
     fisRole: iam.Role;
 
     constructor(scope: Construct, id: string, props?: StackProps) {
-        super(scope, id, props);
+        super(scope, id);
 
+        const region = cdk.Aws.REGION;
+        const accountId = cdk.Aws.ACCOUNT_ID;
         // FIS Role
         this.fisRole = new iam.Role(this, "fis-role", {
+            roleName: 'fisChaosLambdaRole',
             assumedBy: new iam.ServicePrincipal("fis.amazonaws.com", {
                 conditions: {
                     StringEquals: {
-                        "aws:SourceAccount": this.account,
+                        "aws:SourceAccount": accountId,
                     },
                     ArnLike: {
-                        "aws:SourceArn": `arn:aws:fis:${this.region}:${this.account}:experiment/*`,
+                        "aws:SourceArn": `arn:aws:fis:${region}:${accountId}:experiment/*`,
                     },
                 },
             }),
         });
 
-        // AllowFISExperimentRoleCloudWatchActions
-        this.fisRole.addToPolicy(
-            new iam.PolicyStatement({
-                resources: ["*"],
-                actions: ["cloudwatch:DescribeAlarms"],
-            })
-        );
-
-        //AllowFISExperimentRoleSSMReadOnly
-        this.fisRole.addToPolicy(
-            new iam.PolicyStatement({
-                resources: ["*"],
-                actions: [
-                    "ec2:DescribeInstances",
-                    "ssm:ListCommands",
-                    "ssm:CancelCommand",
-                    "ssm:PutParameter"
-                ],
-            })
-        );
-
         //AllowFISExperimentRoleSSMAAction
         this.fisRole.addToPolicy(
             new iam.PolicyStatement({
                 resources: [`*`],
-                actions: ["ssm:StopAutomationExecution", "ssm:GetAutomationExecution"],
-            })
-        );
-
-        //AllowFISExperimentRoleSSMAAction
-        this.fisRole.addToPolicy(
-            new iam.PolicyStatement({
-                resources: [`*`],
-                actions: ["ssm:StartAutomationExecution"],
-            })
-        );
-
-        //AllowFISExperimentRoleSSMSendCommand
-        this.fisRole.addToPolicy(
-            new iam.PolicyStatement({
-                resources: [`arn:aws:ec2:*:*:instance/*`, `arn:aws:ssm:*:*:document/*`],
-                actions: ["ssm:SendCommand"],
+                actions: ["ssm:StartAutomationExecution", "ssm:StopAutomationExecution", "ssm:GetAutomationExecution"],
             })
         );
 
@@ -76,7 +42,6 @@ export class FisRole extends Stack {
                 actions: ["iam:PassRole"],
             })
         );
-
 
         //AllowLogsRoleAllLogDelivery
         this.fisRole.addToPolicy(

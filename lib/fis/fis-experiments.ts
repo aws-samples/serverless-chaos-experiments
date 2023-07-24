@@ -1,5 +1,5 @@
 import {Construct} from "constructs";
-import {aws_ssm as ssm, Stack} from "aws-cdk-lib";
+import {aws_ssm as ssm} from "aws-cdk-lib";
 import {aws_iam as iam} from "aws-cdk-lib";
 import {aws_fis as fis} from "aws-cdk-lib";
 import * as cdk from 'aws-cdk-lib/core';
@@ -21,8 +21,8 @@ export class FisLambdaExperiments extends Construct {
     constructor(scope: Construct, id: string, props: FisStackProps) {
         super(scope, id);
 
-        const region = cdk.Aws.ACCOUNT_ID;
-        const accountId = cdk.Aws.REGION;
+        const region = cdk.Aws.REGION;
+        const accountId = cdk.Aws.ACCOUNT_ID;
 
         const errorMetric = props.lambdaFunction.metricErrors();
 
@@ -61,6 +61,7 @@ export class FisLambdaExperiments extends Construct {
             this,
             "ssma-put-parameterstore-role",
             {
+                roleName: 'ssmaPutParameterRole',
                 assumedBy: new iam.CompositePrincipal(
                     new iam.ServicePrincipal("iam.amazonaws.com"),
                     new iam.ServicePrincipal("ssm.amazonaws.com")
@@ -103,10 +104,9 @@ export class FisLambdaExperiments extends Construct {
             parameters: {
                 documentArn: `arn:aws:ssm:${region}:${accountId}:document/${parameterstore_cfnDocument.name}`,
                 documentParameters: JSON.stringify({
-                    DurationMinutes: "PT1M",
-                    AutomationAssumeRole: ssmaPutParameterStoreRole.roleId,
+                    DurationMinutes: "PT5M",
+                    AutomationAssumeRole: ssmaPutParameterStoreRole.roleArn,
                     ParameterName: props.chaosParameterName,
-                    // TODO change value
                     ParameterValue: '{ "is_enabled": true, "delay": 1000, "error_code": 404, "exception_msg": "This is chaos", "rate": 1, "fault_type": "exception"}',
                     RollbackValue: '{ "is_enabled": false, "delay": 1000, "error_code": 404, "exception_msg": "This is chaos", "rate": 1, "fault_type": "exception"}'
                 }),
