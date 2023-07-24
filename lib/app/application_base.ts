@@ -1,6 +1,7 @@
 import {CfnOutput, Duration, Stack} from 'aws-cdk-lib';
 import {Construct} from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as lambdaNode from "aws-cdk-lib/aws-lambda-nodejs";
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
@@ -11,7 +12,7 @@ import {ComparisonOperator, TreatMissingData} from 'aws-cdk-lib/aws-cloudwatch';
 import * as lambdaEventSources from 'aws-cdk-lib/aws-lambda-event-sources';
 
 export interface ApplicationProps {
-    chaosExperimentFn: lambda.Function;
+    chaosExperimentFn: lambda.Function | lambdaNode.NodejsFunction;
     chaosExperimentConfiguration: string;
     chaosParameterName: string;
     applicationName: string;
@@ -36,13 +37,12 @@ export class ApplicationBase extends Construct {
 
         // ------------------- SSM CHAOS CONFIG PARAMETER -------------------------------
 
-        const ssmParameter = new ssm.StringParameter(
+        new ssm.StringParameter(
             this,
             `${props.applicationName}-ConfigSsmParameter`,
             {
                 parameterName: props.chaosParameterName,
                 stringValue: props.chaosExperimentConfiguration,
-            //stringValue: '{ "delay": 400, "is_enabled": false, "error_code": 404, "exception_msg": "This is chaos", "rate": 1, "fault_type": "exception"}',
         });
 
         const describeParametersPolicy = new iam.PolicyStatement({
@@ -70,7 +70,7 @@ export class ApplicationBase extends Construct {
         const snsTopic = new sns.Topic(
             this,
             `${props.applicationName}-alaramTopic`, {
-            topicName: `${props.applicationName}-alaramTopic`,
+            topicName: `${props.applicationName}-alarmTopic`,
             displayName: 'Topic for general alerting functionality'
         });
 

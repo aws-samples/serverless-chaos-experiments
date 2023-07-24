@@ -12,7 +12,7 @@ export class ApplicationChaosLambda extends Stack {
         super(scope, id, props);
 
         const chaosParameterName = 'chaoslambda.config'
-        const chaosExperimentConfiguration = '{ "delay": 400, "is_enabled": false, "error_code": 404, "exception_msg": "This is chaos", "rate": 1, "fault_type": "exception"}'
+        const chaosExperimentConfiguration = '{ "fault_type": "exception", "is_enabled": false, "delay": 400, "error_code": 404, "exception_msg": "This is chaos", "rate": 1}'
 
         // ------------------- LAMBDA FUNCTION -------------------------------
 
@@ -20,7 +20,7 @@ export class ApplicationChaosLambda extends Stack {
             handler: 'lambda_function.lambda_handler',
             functionName: 'Lambda_with_Chaos_Lambda',
             description: 'Performs simple chaos experiments using the chaos_lambda library',
-            code: lambda.Code.fromAsset('lambda/chaos_lambda', {
+            code: lambda.Code.fromAsset('lib/app/resources/lambda/chaos_lambda', {
                 bundling: {
                     image: lambda.Runtime.PYTHON_3_10.bundlingImage,
                     command: [

@@ -12,7 +12,7 @@ export class ApplicationFailureLambda extends Stack {
         super(scope, id, props);
 
         const chaosParameterName = 'failureLambdaConfig'
-        const chaosExperimentConfiguration = '{ "delay": 400, "is_enabled": false, "error_code": 404, "exception_msg": "This is chaos", "rate": 1, "fault_type": "exception"}'
+        const chaosExperimentConfiguration = '{"isEnabled": false, "failureMode": "latency", "rate": 0.5, "minLatency": 3000, "maxLatency": 5000}'
 
         // ------------------- LAMBDA FUNCTION -------------------------------
 
@@ -20,7 +20,7 @@ export class ApplicationFailureLambda extends Stack {
             handler: 'lambda_function.lambda_handler',
             functionName: 'Lambda_with_Failure_Lambda',
             description: 'Performs simple chaos experiments using the failure_lambda library',
-            code: lambda.Code.fromAsset('lambda/failure-lambda', {
+            code: lambda.Code.fromAsset('lib/app/resources/lambda/failure-lambda', {
 
             }),
             environment: {
