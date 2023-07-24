@@ -2,6 +2,10 @@
   "title": "Code manipulation chaos",
   "description": "Inject chaos into the Lambda function handler code using the chaostoolkit",
   "configuration": {
+    "function_name": {
+      "type": "env",
+      "key": "FUNCTION_NAME"
+    },
     "parameter_name": {
       "type": "env",
       "key": "PARAMETER_NAME"
@@ -51,17 +55,21 @@
     "title": "Lambda function can handle all requests even when chaos is injected into it.",
     "probes": [
       {
-        "name": "get-alarm-state-value",
+        "name": "get-metric-data",
         "type": "probe",
         "provider": {
           "type": "python",
           "module": "chaosaws.cloudwatch.probes",
-          "func": "get_alarm_state_value",
+          "func": "get_metric_data",
           "arguments": {
-            "alarm_name": "${alarm}"
+            "metric_name": "Errors",
+            "namespace": "Lambda",
+            "dimension_name": "FunctionName",
+            "dimension_value": "ServerlessChaosStack-chaos-experiment",
+            "statistic": "Sum"
           }
         },
-        "tolerance": "OK"
+        "tolerance": [0, 10]
       }
     ]
   },
@@ -86,7 +94,7 @@
       "provider": {
         "type": "process",
         "path": "aws",
-        "arguments": "ssm put-parameter --name ${parameter_name} --type String --overwrite --value '{\"isEnabled\": false}'"
+        "arguments": "ssm put-parameter --name ${parameter_name} --type String --overwrite --value '{\"is_enabled\": false}'"
       }
     }
   ]
