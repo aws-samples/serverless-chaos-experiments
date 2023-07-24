@@ -34,7 +34,7 @@ export class ApplicationChaosLambda extends Stack {
             tracing: lambda.Tracing.ACTIVE
         });
 
-        const appBase = new ApplicationBase(
+        new ApplicationBase(
             this,
             'ApplicationWithChaosLambda',
             {

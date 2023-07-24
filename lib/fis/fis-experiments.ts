@@ -115,10 +115,10 @@ export class FisLambdaExperiments extends Construct {
         };
 
         // FIS role
-        const fisRole = new FisRole(this, 'fis-role', {});
+        const fisRole = new FisRole(this, 'fis-role');
 
         // Experiments
-        const templateInjectFailureIntoLambda = new fis.CfnExperimentTemplate(
+        new fis.CfnExperimentTemplate(
             this,
             "fis-template-inject-lambda-fault",
             {

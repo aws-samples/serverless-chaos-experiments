@@ -1,5 +1,4 @@
 import { Construct } from "constructs";
-import { StackProps } from "aws-cdk-lib";
 import { aws_iam as iam } from "aws-cdk-lib";
 import * as cdk from "aws-cdk-lib/core";
 
@@ -7,7 +6,7 @@ export class FisRole extends Construct {
 
     fisRole: iam.Role;
 
-    constructor(scope: Construct, id: string, props?: StackProps) {
+    constructor(scope: Construct, id: string) {
         super(scope, id);
 
         const region = cdk.Aws.REGION;
