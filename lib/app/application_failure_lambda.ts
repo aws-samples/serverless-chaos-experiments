@@ -3,6 +3,7 @@ import {Construct} from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import {ApplicationBase} from "./application_base";
 import * as lambdaNode from "aws-cdk-lib/aws-lambda-nodejs";
+import {FisLambdaExperiments} from "../fis/fis-experiments";
 
 export interface ApplicationFailureLambdaProps extends StackProps {
     applicationName: string;
@@ -38,6 +39,16 @@ export class ApplicationFailureLambda extends Stack {
                 chaosParameterName: chaosParameterName,
                 chaosExperimentConfiguration: chaosExperimentConfiguration,
                 applicationName: props.applicationName
+            });
+
+        // ------------------- FIS Experiments -------------------------------
+
+        new FisLambdaExperiments(
+            this,
+            'FisLambdaExperimentFailureLambda',
+            {
+                lambdaFunction: chaosExperimentFn,
+                chaosParameterName: chaosParameterName
             });
     }
 }
