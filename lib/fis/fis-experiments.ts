@@ -107,10 +107,10 @@ export class FisLambdaExperiments extends Construct {
                     DurationMinutes: "PT5M",
                     AutomationAssumeRole: ssmaPutParameterStoreRole.roleArn,
                     ParameterName: props.chaosParameterName,
-                    ParameterValue: '{ "is_enabled": true, "delay": 1000, "error_code": 404, "exception_msg": "This is chaos", "rate": 1, "fault_type": "exception"}',
-                    RollbackValue: '{ "is_enabled": false, "delay": 1000, "error_code": 404, "exception_msg": "This is chaos", "rate": 1, "fault_type": "exception"}'
+                    ParameterValue: '{"isEnabled": true, "failureMode": "exception", "rate": 1, "minLatency": 100, "maxLatency": 400, "exceptionMsg": "Exception message!", "statusCode": 404, "diskSpace": 100, "denylist": ["s3.*.amazonaws.com", "dynamodb.*.amazonaws.com"]}',
+                    RollbackValue: '{"isEnabled": false, "failureMode": "exception", "rate": 1, "minLatency": 100, "maxLatency": 400, "exceptionMsg": "Exception message!", "statusCode": 404, "diskSpace": 100, "denylist": ["s3.*.amazonaws.com", "dynamodb.*.amazonaws.com"]}'
                 }),
-                maxDuration: "PT5M",
+                maxDuration: "PT10M",
             },
         };
 

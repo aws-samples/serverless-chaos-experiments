@@ -14,9 +14,9 @@ export class ApplicationFailureLambda extends Stack {
         super(scope, id, props);
 
         const chaosParameterName = 'failureLambdaConfig'
-        const chaosExperimentConfiguration = '{"isEnabled": false, "failureMode": "latency", "rate": 0.5, "minLatency": 3000, "maxLatency": 5000}'
+        const chaosExperimentConfiguration = '{"isEnabled": false, "failureMode": "exception", "rate": 1, "minLatency": 100, "maxLatency": 400, "exceptionMsg": "Exception message!", "statusCode": 404, "diskSpace": 100, "denylist": ["s3.*.amazonaws.com", "dynamodb.*.amazonaws.com"]}';
 
-        // ------------------- LAMBDA FUNCTION -------------------------------
+        // ------------------- LAMBDA FUNCTION -------------------------------q
 
         const chaosExperimentFn = new lambdaNode.NodejsFunction(
             this,
