@@ -1,5 +1,5 @@
 *.js
-!lambda_function.js
+!index.js
 !jest.config.js
 *.d.ts
 node_modules
