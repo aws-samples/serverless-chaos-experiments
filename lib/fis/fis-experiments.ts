@@ -37,7 +37,6 @@ export class FisLambdaExperiments extends Construct {
                 comparisonOperator: ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
                 evaluationPeriods: 1,
                 treatMissingData: TreatMissingData.NOT_BREACHING,
-
                 actionsEnabled: true
             });
 

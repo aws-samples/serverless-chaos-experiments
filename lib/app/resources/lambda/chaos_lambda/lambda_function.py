@@ -7,7 +7,6 @@ os.environ['CHAOS_PARAM'] = 'chaoslambda.config'
 
 @inject_fault
 def lambda_handler(event, context):
-    print(event)
     sleep(2)
     return {
         'statusCode': 200,

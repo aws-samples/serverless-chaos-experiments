@@ -27,11 +27,13 @@ send_batch_messages() {
     if [ ${#batch[@]} -eq $BATCH_SIZE ]; then
       aws sqs send-message-batch --queue-url "$SQS_QUEUE_URL" --entries "${batch[@]}" --region "$AWS_REGION" >/dev/null 2>&1
       batch=()
+      echo "Batch with ${BATCH_SIZE} messages was sent"
     fi
   done
 
   if [ ${#batch[@]} -gt 0 ]; then
     aws sqs send-message-batch --queue-url "$SQS_QUEUE_URL" --entries "${batch[@]}" --region "$AWS_REGION" >/dev/null 2>&1
+    echo "Batch with ${BATCH_SIZE} messages was sent"
   fi
 }
 
