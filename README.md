@@ -61,6 +61,11 @@ There are two predefined experiments
 
 Use the provided scripts for this. Change the environment variables according to your deployed resources.
 
+```
+. ./chaos_toolkit/run-code-manipulation-experiment.sh
+. ./chaos_toolkit/run-concurrency-experiment.sh
+```
+
 ### FIS
 
 To start the FIS experiments you can simply go into the AWS console and select the FIS service.
