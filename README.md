@@ -62,8 +62,9 @@ There are two predefined experiments
 Use the provided scripts for this. Change the environment variables according to your deployed resources.
 
 ```
-. ./chaos_toolkit/run-code-manipulation-experiment.sh
-. ./chaos_toolkit/run-concurrency-experiment.sh
+cd chaos_toolkit
+. ./run-code-manipulation-experiment.sh
+. ./run-concurrency-experiment.sh
 ```
 
 ### FIS
