@@ -11,7 +11,10 @@ export class FisRole extends Construct {
 
         const region = cdk.Aws.REGION;
         const accountId = cdk.Aws.ACCOUNT_ID;
-        // FIS Role
+
+
+         // ------------------- FIS ROLE -------------------------------
+
         this.fisRole = new iam.Role(this, "fis-role", {
             roleName: 'fisChaosLambdaRole',
             assumedBy: new iam.ServicePrincipal("fis.amazonaws.com", {

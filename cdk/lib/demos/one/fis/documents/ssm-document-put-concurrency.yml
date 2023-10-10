@@ -6,34 +6,33 @@
 #==================================================
 
 description: |
-  ### Document Name - ParameterStore-FIS-Automation
+  ### Document Name - LambdaConcurrency-FIS-Automation
 
   ## What does this document do?
-  This document stores a particular configuration to SSM Parameter store. 
-  https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html
+  This document changes the concurrency level of a specific Lambda function 
+  https://docs.aws.amazon.com/lambda/latest/dg/configuration-concurrency.html 
 
   ## Security Risk
-  Low: This is not a fault per se, but a configuration change.The change should be restricted by a strict IAM role that only allows changing a particular ParameterName. https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-paramstore-access.html
+  Low: This is not a fault per se, but a configuration change. The change should be restricted by a strict IAM role that only allows changing a particular ParameterName. https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-paramstore-access.html
 
   ## Input Parameters
   * AutomationAssumeRole: (Optional) The ARN of the role that allows Automation to perform the actions on your behalf.
-  * ParameterName: (Required) The name of the parameter to modify.
-  * ParameterValue: (Required) The value of the parameter.
-  * RollbackValue: (Required) The value of the parameter to roll-back to.
-  * Type: (Optional) The type of parameter. String, StringList, or SecureString. Default String.
+  * FunctionName: (Required) The name of the function to modify.
+  * ConcurrencyLevel: (Required) The value of the concurrency level.
   * DurationMinutes: (Optional) ** Default 1 minute ** Maximum duration the fault can exist for.
 
   ## Supports Rollback
-  Yes. The configuration is reverted to a .
+  Yes. Function concurrency settings will be reset.
 
   ## Cancellation behaviour
-  The parameter value is rollback to RollbackValue.   
+  Function concurrency settings will be reset.
 
   ## Output Parameters
   This document has no outputs.
 
   ## Minimum Permissions Required
-  * ssm:PutParameter
+  * lambda:PutFunctionConcurrency
+  * lambda:DeleteFunctionConcurrency
 
   ## Additional Permissions for logging
   * logs:CreateLogStream
@@ -54,19 +53,12 @@ assumeRole: "{{ AutomationAssumeRole }}"
 #==================================================
 
 parameters:
-  ParameterName:
+  FunctionName:
     type: String
-    description: "(Required) The name of the parameter to modify."
-  ParameterValue:
-    type: String
-    description: "(Required) The value of the parameter."
-  RollbackValue:
-    type: String
-    description: "(Required) The value of the parameter to roll-back to."
-  ParameterType:
-    type: String
-    description: "(Optional) The type of parameter. String, StringList, or SecureString."
-    default: "String"
+    description: "(Required) The name of the function to modify."
+  ConcurrencyLevel:
+    type: Integer
+    description: "(Required) The value of the concurrency level."
   DurationMinutes:
     type: String
     description: "The duration - in ISO-8601 format - until rollback. (Required)"
@@ -82,18 +74,16 @@ parameters:
 #==================================================
 
 mainSteps:
-  - name: putParameter
-    description: Adding value to a particular parameter
+  - name: putConcurrency
+    description: Setting the concurrency level of the function.
     onFailure: "step:rollback"
     onCancel: "step:rollback"
     action: "aws:executeAwsApi"
     inputs:
-      Service: ssm
-      Api: PutParameter
-      Name: '{{ ParameterName }}'
-      Value: '{{ ParameterValue }}'
-      Type: '{{ ParameterType }}'
-      Overwrite: true
+      Service: lambda
+      Api: PutFunctionConcurrency
+      FunctionName: '{{ FunctionName }}'
+      ReservedConcurrentExecutions: '{{ ConcurrencyLevel }}'
 
   - name: sleep
     action: aws:sleep
@@ -106,9 +96,6 @@ mainSteps:
     description: Rolling back value to a particular parameter
     action: "aws:executeAwsApi"
     inputs:
-      Service: ssm
-      Api: PutParameter
-      Name: '{{ ParameterName }}'
-      Value: '{{ RollbackValue }}'
-      Type: '{{ ParameterType }}'
-      Overwrite: true
+      Service: lambda
+      Api: DeleteFunctionConcurrency
+      FunctionName: '{{ FunctionName }}'
