@@ -4,6 +4,7 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as sns from 'aws-cdk-lib/aws-sns';
 import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
 import * as cloudwatchActions from 'aws-cdk-lib/aws-cloudwatch-actions';
+import { FisChaosExtensionProxyExperiment } from "./fis/fis-chaos-extension-experiment";
 
 
 export class DemoThree extends Stack {
@@ -14,10 +15,9 @@ export class DemoThree extends Stack {
 
         // Check latest version here: https://github.com/aws-cli-tools/chaos-lambda-extension/blob/main/LAYERS.md
         // Leave account number as the Layers are hosted there
+        // If you're using ARM, use a different layer ARN
         const chaosLayerVersion = 9;
         const chaosLayerArn = `arn:aws:lambda:${this.region}:871265522301:layer:chaos-lambda-extension-x86_64-unknown-linux-gnu-release:${chaosLayerVersion}`;
-
-        const chaosLayer = lambda.LayerVersion.fromLayerVersionArn(this, 'chaos', chaosLayerArn);
 
         // ------------------- LAMBDA FUNCTION -------------------------------
 
@@ -27,15 +27,8 @@ export class DemoThree extends Stack {
             description: 'Simple hello_world lambda function that will be used in chaos experiments',
             code: lambda.Code.fromAsset('lib/resources/lambda/hello_world', {}),
             runtime: lambda.Runtime.PYTHON_3_11,
-            layers: [chaosLayer],
             tracing: lambda.Tracing.ACTIVE,
-            timeout: Duration.seconds(30),
-            environment: {
-                'AWS_LAMBDA_EXEC_WRAPPER': '/opt/bootstrap',
-                'CHAOS_EXTENSION__LAMBDA__ENABLE_LATENCY': 'true',
-                'CHAOS_EXTENSION__LAMBDA__LATENCY_VALUE': '10',
-                'CHAOS_EXTENSION__LAMBDA__LATENCY_PROBABILITY': '1',
-            }
+            timeout: Duration.seconds(30)
         });
 
         // ------------------- SNS TOPIC --------------------------------------
@@ -68,10 +61,16 @@ export class DemoThree extends Stack {
 
         // -------------------- FIS Experiment -------------------------------
 
-        // TODO
-
-
-
+        const fisExperiment = new FisChaosExtensionProxyExperiment(this, 'fisHandlerReplacementExperiment', {
+            lambdaFunctionArn: chaosLambdaFunction.functionArn,
+            lambdaName: chaosLambdaFunction.functionName,
+            lambdaLayerArn: chaosLayerArn,
+            chaosType: "response",
+            chaosLatency: "10",
+            chaosProbability: "1",
+            chaosResponse: '{"statusCode": 500, "body": "hello, Chaos!!!"}',
+            cloudWatchAlarmArn: alarm.alarmArn
+        });
     }
 }
 

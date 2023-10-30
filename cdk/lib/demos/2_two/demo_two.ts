@@ -14,10 +14,6 @@ export class DemoTwo extends Stack {
     constructor(scope: Construct, id: string) {
         super(scope, id);
 
-        // TODO change value here
-        const chaosExperimentConfiguration = '{ "fault_type": "exception", "is_enabled": false, "delay": 400, "error_code": 404, "exception_msg": "This is chaos", "rate": 1}';
-
-
         // ------------------- LAMBDA FUNCTION -------------------------------
 
         const chaosLambdaFunction = new lambda.Function(this, 'chaosLambdaDemo2', {
@@ -85,6 +81,8 @@ export class DemoTwo extends Stack {
         alarm.addAlarmAction(new cloudwatchActions.SnsAction(snsTopic));
 
         // -------------------- Parameter Store ------------------------------
+        
+        const chaosExperimentConfiguration = '{ "is_enabled": false }';
 
         const chaosParameter = new ssm.StringParameter(this, 'chaosConfigSsmParameterDemo2', {
             parameterName: '/ChaosInjection/ChaosConfigSsmParameter',

@@ -1,0 +1,222 @@
+---
+#==================================================
+# SSM Automation Document / Runbook:
+# Defines the configuration as well as the
+# the steps to be run by SSM Automation
+#==================================================
+
+description: |
+  ### Document Name - ChaosExtensionProxy-FIS-Automation-Doc
+
+  ## What does this document do?
+  TODO
+  This document adds the chaos-lambda-extension and configures the environment variables needed to run the chaos experiment. See https://github.com/aws-cli-tools/chaos-lambda-extension
+
+  ## Security Risk
+  Low: This is not a fault per se, but a configuration change.
+  The change should be restricted by a strict IAM role that only allows to get & update the function configuration.
+
+  ## Input Parameters
+  * AutomationAssumeRole: (Optional) The ARN of the role that allows Automation to perform the actions on your behalf.
+  * FunctionName: (Required) The name (or ARN) of the Lambda function to be used for the chaos experiments.
+  * ChaosLayerArn: (Required) The ARN of the Lambda layer used to inject the chaos.
+  * ChaosType: (Required) The type of chaos to be injected, either 'latency' or 'response'..
+  * ChaosLatency: (Required) The amount of delay to be injected if the type is latency.
+  * ChaosResponse: (Required)  The response to be returned if the the chaos type is response.
+  * ChaosProbability: (Required) The rate of invocations that have chaos injected.
+  * DurationMinutes: (Optional) ** Default 1 minute ** Maximum duration the fault can exist for.
+
+  ## Supports Rollback
+  Yes. The chaos extension layer and all environment variables are removed, effectively disabling the experiment. 
+
+  ## Cancellation behaviour
+  The chaos extension layer and all environment variables are removed, effectively disabling the experiment.   
+
+  ## Output Parameters
+  This document has no outputs.
+
+  ## Minimum Permissions Required
+  * lambda:UpdateFunctionConfiguration
+  * lambda:GetFunctionConfiguration
+  * lambda:GetLayerVersion
+
+  ## Additional Permissions for logging
+  * logs:CreateLogStream
+  * logs:CreateLogGroup
+  * logs:PutLogEvents
+  * logs:DescribeLogGroups
+  * logs:DescribeLogStreams
+
+schemaVersion: "0.3"
+
+#==================================================
+# Role assumed my the automation document / runbook
+#==================================================
+assumeRole: "{{ AutomationAssumeRole }}"
+
+#==================================================
+# SSM automation document parameters
+#==================================================
+
+parameters:
+  FunctionName:
+    type: String
+    description: "(Required) The name (or ARN) of the Lambda function to be used for the chaos experiments."
+  ChaosLayerArn:
+    type: String
+    description: "(Required) The ARN of the Lambda extension layer used to inject the chaos."
+  ChaosType:
+    type: String
+    description: "(Required) The type of chaos to be injected, either 'latency' or 'response'."
+    default: "latency"
+  ChaosLatency:
+    type: String
+    description: "(Required) The amount of delay to be injected if the type is latency."
+  ChaosResponse:
+    type: String
+    description: "(Required) The response to be returned if the the chaos type is response."
+  ChaosProbability:
+    type: String
+    description: "(Required) The rate of invocations that have chaos injected."
+    default: "1"
+  DurationMinutes:
+    type: String
+    description: "The duration - in ISO-8601 format - until rollback. (Required)"
+    default: "PT1M"
+  AutomationAssumeRole:
+    type: String
+    description:
+      "(Optional) The ARN of the role that allows Automation to perform
+      the actions on your behalf."
+
+#==================================================
+# Automation steps
+#==================================================
+
+mainSteps:
+  - name: addExension
+    description: Changing the Lambda configuration and adding the Chaos Lambda Layer
+    onFailure: "step:rollback"
+    onCancel: "step:rollback"
+    action: "aws:executeScript"
+    inputs:
+      Runtime: python3.7
+      Handler: handler
+      InputPayload:
+        FunctionName: "{{ FunctionName }}"
+        LayerArn: "{{ ChaosLayerArn }}"
+        ChaosType: "{{ ChaosType }}"
+        ChaosLatency: "{{ ChaosLatency }}"
+        ChaosResponse: "{{ ChaosResponse }}"
+        ChaosProbability: "{{ ChaosProbability }}"
+      Script: |-
+        import boto3
+
+        def handler(event, context):
+          lambda_client = boto3.client("lambda")
+          
+          function_name = event["FunctionName"]
+          layer_arn = event["LayerArn"]
+          chaos_type = event["ChaosType"]
+          chaos_latency = event["ChaosLatency"]
+          chaos_response = event["ChaosResponse"]
+          chaos_probability = event["ChaosProbability"]
+
+          # get existing environment
+          lambda_config_existing = lambda_client.get_function_configuration(FunctionName=function_name)
+
+          layers = lambda_config_existing.get("Layers")
+          if layers is None:
+            layer_arns = [layer_arn]
+          else:
+            layer_arns = [x.get("Arn") for x in layers]
+            if layer_arn not in layer_arns:
+              layer_arns.append(layer_arn)
+
+
+          existing_env_variables = lambda_config_existing.get("Environment")
+
+          chaos_variables = {
+            "AWS_LAMBDA_EXEC_WRAPPER": "/opt/bootstrap", 
+            "CHAOS_EXTENSION__LAMBDA__ENABLE_LATENCY": "true" if chaos_type == "latency" else "false",
+            "CHAOS_EXTENSION__LAMBDA__LATENCY_VALUE": chaos_latency,
+            "CHAOS_EXTENSION__LAMBDA__LATENCY_PROBABILITY": chaos_probability,
+            "CHAOS_EXTENSION__RESPONSE__ENABLE_CHANGE_REPONSE_BODY": "true" if chaos_type == "response" else "false",
+            "CHAOS_EXTENSION__RESPONSE__DEFAULT_RESPONSE": chaos_response,
+            "CHAOS_EXTENSION__RESPONSE__CHANGE_RESPONSE_PROBABILITY": chaos_probability,
+            "RUST_LOG": "info"
+          }
+
+          if existing_env_variables is not None:
+            existing_env_variables["Variables"].update(chaos_variables)
+          else:
+            existing_env_variables = { "Variables": chaos_variables }
+              
+          lambda_config_existing = lambda_client.update_function_configuration(
+            FunctionName=function_name,
+            Layers=layer_arns,
+            Environment=existing_env_variables
+          )
+
+          return
+
+
+  - name: sleep
+    action: aws:sleep
+    onFailure: "step:rollback"
+    onCancel: "step:rollback"
+    inputs:
+      Duration: "{{ DurationMinutes }}"
+
+  - name: rollback
+    action: aws:executeScript
+    inputs:
+      Runtime: python3.7
+      Handler: handler
+      InputPayload:
+        FunctionName: "{{ FunctionName }}"
+        LayerArn: "{{ ChaosLayerArn }}"
+      Script: |-
+        import boto3
+
+        def handler(event, context):
+          lambda_client = boto3.client("lambda")
+
+          function_name = event["FunctionName"]
+          layer_arn = event["LayerArn"]
+
+          # get existing environment
+          lambda_config_existing = lambda_client.get_function_configuration(FunctionName=function_name)
+
+          # get existing environment handlers
+          if lambda_config_existing.get("Layers") is not None:
+            layer_arns = [x.get("Arn") for x in lambda_config_existing.get("Layers") if x.get("Arn") != layer_arn]
+          else:
+            layer_arns = []
+
+          existing_env = lambda_config_existing.get("Environment")
+
+          chaos_variable_keys = [
+            "AWS_LAMBDA_EXEC_WRAPPER", 
+            "CHAOS_EXTENSION__LAMBDA__ENABLE_LATENCY",
+            "CHAOS_EXTENSION__LAMBDA__LATENCY_VALUE",
+            "CHAOS_EXTENSION__LAMBDA__LATENCY_PROBABILITY",
+            "CHAOS_EXTENSION__RESPONSE__ENABLE_CHANGE_REPONSE_BODY",
+            "CHAOS_EXTENSION__RESPONSE__DEFAULT_RESPONSE",
+            "CHAOS_EXTENSION__RESPONSE__CHANGE_RESPONSE_PROBABILITY",
+            "RUST_LOG"
+          ]
+
+          if existing_env is not None:
+            for key in chaos_variable_keys:
+              existing_env.get("Variables").pop(key, None)
+          else:
+            existing_env = {}
+              
+          lambda_config_existing = lambda_client.update_function_configuration(
+            FunctionName=function_name,
+            Layers=layer_arns,
+            Environment=existing_env
+          )
+
+          return

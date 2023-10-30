@@ -25,7 +25,6 @@ description: |
   * ChaosLayerArn: (Required) The ARN of the Lambda layer used to inject the chaos.
   * ChaosParameterName: (Required) The name of the chaos experiment configuration parameter to modify.
   * ChaosParameterValue: (Required) The value of the chaos experiment configuration parameter.
-  * RollbackValue: (Required) The value of the parameter to roll-back to.
   * DurationMinutes: (Optional) ** Default 1 minute ** Maximum duration the fault can exist for.
 
   ## Supports Rollback
@@ -38,7 +37,6 @@ description: |
   This document has no outputs.
 
   ## Minimum Permissions Required
-  * ssm:PutParameter
   * ssm:PutParameter
   * ssm:LabelParameterVersion
   * ssm:DescribeDocumentParameters
@@ -81,9 +79,6 @@ parameters:
   ChaosParameterValue:
     type: String
     description: "(Required) The value of the chaos experiment configuration parameter."
-  RollbackValue:
-    type: String
-    description: "(Required) The value of the parameter to roll-back to."
   DurationMinutes:
     type: String
     description: "The duration - in ISO-8601 format - until rollback. (Required)"

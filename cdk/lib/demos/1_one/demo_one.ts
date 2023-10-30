@@ -1,4 +1,4 @@
-import { Stack, Duration } from "aws-cdk-lib";
+import { Stack, Duration, CfnOutput } from "aws-cdk-lib";
 import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as sns from 'aws-cdk-lib/aws-sns';
@@ -20,7 +20,7 @@ export class DemoOne extends Stack {
             description: 'Simple hello_world lambda function that will be used in chaos experiments',
             code: lambda.Code.fromAsset('lib/resources/lambda/hello_world', {}),
             runtime: lambda.Runtime.PYTHON_3_11,
-            tracing: lambda.Tracing.ACTIVE
+            tracing: lambda.Tracing.ACTIVE,
         });
 
         // ------------------- SNS TOPIC --------------------------------------
@@ -58,5 +58,11 @@ export class DemoOne extends Stack {
             lambdaFunction: chaosLambdaFunction,
             cloudWatchAlarmArn: alarm.alarmArn
         });
+
+        // ------------------------ OUTPUTS ----------------------------------
+
+        new CfnOutput(this, 'FunctionName', { value: chaosLambdaFunction.functionName });
+        new CfnOutput(this, 'CloudWatchAlarmName', { value: alarm.alarmName });
+
     }
 }

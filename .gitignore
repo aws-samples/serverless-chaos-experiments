@@ -11,3 +11,6 @@ cdk.out
 # Chaos Toolkit
 chaostoolkit.log
 *journal.json
+
+# temp folder
+/temp
