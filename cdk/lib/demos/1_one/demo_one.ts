@@ -1,9 +1,7 @@
 import { Stack, Duration, CfnOutput } from "aws-cdk-lib";
 import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as sns from 'aws-cdk-lib/aws-sns';
 import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
-import * as cloudwatchActions from 'aws-cdk-lib/aws-cloudwatch-actions';
 import { FisLambdaConcurrencyExperiment } from "./fis/fis-concurrency-experiment";
 
 
@@ -21,13 +19,6 @@ export class DemoOne extends Stack {
             code: lambda.Code.fromAsset('lib/resources/lambda/hello_world', {}),
             runtime: lambda.Runtime.PYTHON_3_11,
             tracing: lambda.Tracing.ACTIVE,
-        });
-
-        // ------------------- SNS TOPIC --------------------------------------
-
-        const snsTopic = new sns.Topic(this, 'alarmTopicDemo1', {
-            topicName: `${this.stackName}-AlarmTopic`,
-            displayName: 'Topic for general alerting and rollback functionality'
         });
 
         // ------------------- CLOUDWATCH ALARM -------------------------------
@@ -48,9 +39,6 @@ export class DemoOne extends Stack {
 
             actionsEnabled: true
         });
-
-        alarm.addAlarmAction(new cloudwatchActions.SnsAction(snsTopic));
-
 
         // -------------------- FIS Experiment -------------------------------
 

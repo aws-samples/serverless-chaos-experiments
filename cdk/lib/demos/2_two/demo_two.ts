@@ -2,11 +2,9 @@ import { Stack, Duration } from "aws-cdk-lib";
 import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as pythonLambda from '@aws-cdk/aws-lambda-python-alpha';
-import * as sns from 'aws-cdk-lib/aws-sns';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
-import * as cloudwatchActions from 'aws-cdk-lib/aws-cloudwatch-actions';
 import { FisHandlerReplacementExperiment } from "./fis/fis-handler-replacement-experiment";
 
 
@@ -50,14 +48,6 @@ export class DemoTwo extends Stack {
         );
 
 
-        // ------------------- SNS TOPIC -------------------------------------
-
-        const snsTopic = new sns.Topic(this, 'alarmTopicDemo2', {
-            topicName: `${this.stackName}-AlarmTopic`,
-            displayName: 'Topic for general alerting and rollback functionality'
-        });
-
-
         // ------------------- CLOUDWATCH ALARM ------------------------------
 
         // TODO create composite alarm, duration of Lambda func, exceptions, status_code
@@ -77,8 +67,6 @@ export class DemoTwo extends Stack {
 
             actionsEnabled: true
         });
-
-        alarm.addAlarmAction(new cloudwatchActions.SnsAction(snsTopic));
 
         // -------------------- Parameter Store ------------------------------
         

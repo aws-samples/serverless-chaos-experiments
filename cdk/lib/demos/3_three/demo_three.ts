@@ -1,9 +1,7 @@
 import { Stack, Duration } from "aws-cdk-lib";
 import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as sns from 'aws-cdk-lib/aws-sns';
 import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
-import * as cloudwatchActions from 'aws-cdk-lib/aws-cloudwatch-actions';
 import { FisChaosExtensionProxyExperiment } from "./fis/fis-chaos-extension-experiment";
 
 
@@ -31,13 +29,6 @@ export class DemoThree extends Stack {
             timeout: Duration.seconds(30)
         });
 
-        // ------------------- SNS TOPIC --------------------------------------
-
-        const snsTopic = new sns.Topic(this, 'alarmTopicDemo3', {
-            topicName: `${this.stackName}-AlarmTopic`,
-            displayName: 'Topic for general alerting and rollback functionality'
-        });
-
         // ------------------- CLOUDWATCH ALARM -------------------------------
 
         const functionThrottles = chaosLambdaFunction.metricErrors({
@@ -56,8 +47,6 @@ export class DemoThree extends Stack {
 
             actionsEnabled: true
         });
-
-        alarm.addAlarmAction(new cloudwatchActions.SnsAction(snsTopic));
 
         // -------------------- FIS Experiment -------------------------------
 
