@@ -1,5 +1,6 @@
 #!/bin/sh
 
+AWS_CONFIGURED_REGION=$(aws configure get region)
 echo "AWS Region (default: $AWS_CONFIGURED_REGION):"
 read AWS_REGION
 AWS_REGION="${AWS_REGION:=$AWS_CONFIGURED_REGION}"

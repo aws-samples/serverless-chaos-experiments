@@ -39,7 +39,7 @@ This demo showcases how one can manipulate the Lambda configuration. In this cas
    * FIS
      * In the FIS console, select the *Set Lambda concurrency level* and start the experiment
    * chaos_toolkit
-     * Run the following script `/scripts/chaos_toolkit/run_demo1.sh` and use the output values for this demo's CloudFormation stack as input
+     * Go to the `/scripts/chaos_toolkit` folder and run the following script `run_demo1.sh`. Use the output values of this demo's CloudFormation stack as input
 2. Check the configuration of the Lambda function, the *Reserved Concurrency* should be now set to the value defined in the [FIS experiment](cdk/lib/demos/1_one/fis/fis-concurrency-experiment.ts).
 3. Trigger a rollback by setting the alarm state manually
    ```
@@ -88,14 +88,13 @@ Here we make use a Lambda extension in order to inject chaos regardless of the r
    aws cloudwatch set-alarm-state --alarm-name $ALARM_NAME --state-value ALARM --state-reason TEST_ROLLBACK
    ```
 
-
 ## Chaos Tools
 
 In this repository we use the following chaos tools:
 
 - [AWS Fault Injection Simulator (FIS)](https://aws.amazon.com/fis/)
   - AWS tool to improve resiliency and performance with controlled experiments
-- [CHAOS Toolkit](https://chaostoolkit.org/)
+- [Chaos Toolkit](https://chaostoolkit.org/)
   - Opensource tool to perform chaos experiments
 - [chaos_Lambda](https://github.com/adhorn/aws-lambda-chaos-injection)
   - Python library to inject chaos into your Lambda function using code manipulation
@@ -104,7 +103,7 @@ In this repository we use the following chaos tools:
 - [Lambda Extensions](https://docs.aws.amazon.com/lambda/latest/dg/lambda-extensions.html)
   - Extensions can be used to write your own chaos tooling for AWS Lambda. In this demo will use the preexisting tool [chaos-lambda-extension](https://github.com/aws-cli-tools/chaos-lambda-extension).
 
-### Chaos Toolkit (WIP)
+### Chaos Toolkit
 
 The Chaos Toolkit uses experiment definitions to define your chaos experiments. Check the [references](https://chaostoolkit.org/drivers/aws/) on how to interact with AWS services.
 
