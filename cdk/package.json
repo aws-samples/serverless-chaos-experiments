@@ -10,6 +10,10 @@
     "test": "jest",
     "cdk": "cdk"
   },
+  "engines" : {
+    "npm" : ">=10.0.0",
+    "node" : ">=18.0.0"
+  },
   "devDependencies": {
     "@aws-cdk/aws-lambda-python-alpha": "^2.100.0-alpha.0",
     "@types/jest": "^29.5.5",
