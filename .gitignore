@@ -14,3 +14,6 @@ chaostoolkit.log
 
 # temp folder
 /temp
+
+# any virtual environments
+/*env
