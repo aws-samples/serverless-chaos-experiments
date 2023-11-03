@@ -1,14 +1,11 @@
-import {Construct} from "constructs";
-import {aws_ssm as ssm} from "aws-cdk-lib";
-import {aws_iam as iam} from "aws-cdk-lib";
-import {aws_fis as fis} from "aws-cdk-lib";
+import { Construct } from "constructs";
+import { aws_fis as fis, aws_iam as iam, aws_ssm as ssm } from "aws-cdk-lib";
 import * as cdk from 'aws-cdk-lib/core';
-
+import { FisRoleDemo2 } from "./fis-role";
+import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
 import fs = require("fs");
 import path = require("path");
 import yaml = require("js-yaml");
-import { FisRoleDemo2 } from "./fis-role";
-import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
 
 
 export interface FisStackProps {

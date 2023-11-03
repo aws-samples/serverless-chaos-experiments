@@ -1,4 +1,4 @@
-import { Stack, Duration } from "aws-cdk-lib";
+import { Duration, Stack } from "aws-cdk-lib";
 import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as pythonLambda from '@aws-cdk/aws-lambda-python-alpha';

@@ -1,15 +1,12 @@
 import { Construct } from "constructs";
-import { aws_ssm as ssm } from "aws-cdk-lib";
-import { aws_iam as iam } from "aws-cdk-lib";
-import { aws_fis as fis } from "aws-cdk-lib";
+import { aws_fis as fis, aws_iam as iam, aws_ssm as ssm } from "aws-cdk-lib";
 import * as cdk from 'aws-cdk-lib/core';
-
-import fs = require("fs");
-import path = require("path");
-import yaml = require("js-yaml");
 import { FisRole } from "./fis-role";
 import * as lambdaNode from "aws-cdk-lib/aws-lambda-nodejs";
 import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
+import fs = require("fs");
+import path = require("path");
+import yaml = require("js-yaml");
 
 export interface FisStackProps {
     lambdaFunction: lambdaNode.NodejsFunction;
