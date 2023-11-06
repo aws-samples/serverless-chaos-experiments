@@ -69,6 +69,9 @@ parameters:
     type: String
     description: "(Required) The type of chaos to be injected, either 'latency' or 'response'."
     default: "latency"
+    allowedValues:
+      - latency
+      - response
   ChaosLatency:
     type: String
     description: "(Required) The amount of delay to be injected if the type is latency."

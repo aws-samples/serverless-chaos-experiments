@@ -17,12 +17,15 @@ This project contains several demos showcasing different approaches for Serverle
 
 ```
 cd cdk
-npm install
+npm ci
 cdk deploy --all
 ```
 
 Optionally you can deploy the demo stacks individually. The stacks contain all resources to run the demo.
 To do this just specify the stack in the deploy command, e.g. `cdk deploy ServerlessChaos-Demo-1`
+
+> [!IMPORTANT]
+> This demo uses SSM documents to define the actions executed during the FIS experiments. They include input parameters in order to be more generic. In production environments it is important to validate those inputs (see [here](https://docs.aws.amazon.com/systems-manager/latest/userguide/documents-syntax-data-elements-parameters.html)).
 
 ## Demo 1
 
