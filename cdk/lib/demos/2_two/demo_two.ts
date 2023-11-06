@@ -6,6 +6,7 @@ import * as ssm from "aws-cdk-lib/aws-ssm";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as cloudwatch from "aws-cdk-lib/aws-cloudwatch";
 import { FisHandlerReplacementExperiment } from "./fis/fis-handler-replacement-experiment";
+import { NagSuppressions } from "cdk-nag";
 
 
 export class DemoTwo extends Stack {
@@ -39,12 +40,40 @@ export class DemoTwo extends Stack {
             ],
         });
 
-        chaosLambdaFunction.role?.attachInlinePolicy(
-            new iam.Policy(this, "additional-ssm-policy", {
-                statements: [
-                    ssmPermissions
-                ]
-            })
+        const ssmPermissionsPolicy = new iam.Policy(this, "additional-ssm-policy", {statements: [ssmPermissions]});
+        chaosLambdaFunction.role?.attachInlinePolicy(ssmPermissionsPolicy);
+
+        NagSuppressions.addResourceSuppressions(ssmPermissionsPolicy, [
+                {
+                    id: "AwsSolutions-IAM5",
+                    reason: "Reading and writing any parameters needed to run the experiment is permissive.",
+                    appliesTo: [
+                        {
+                            regex: "/(.*)(ChaosInjection)(.*)$/g",
+                        },
+                    ],
+                },
+            ],
+            true
+        );
+
+        NagSuppressions.addResourceSuppressions(chaosLambdaFunction, [
+                {
+                    id: "AwsSolutions-IAM4",
+                    reason: "As this a demo sample using AWS Managed Policies for the Lambda execution role is permissive.",
+                    appliesTo: [
+                        {
+                            regex: "/(.*)(AWSLambdaBasicExecutionRole|service-role)(.*)$/g",
+                        },
+                    ],
+                },
+                {
+                    id: "AwsSolutions-IAM5",
+                    reason: "The AWS Managed policy contains wildcard permissions which is permissive for a sample demo.",
+                    appliesTo: ["Resource::*"]
+                },
+            ],
+            true
         );
 
 

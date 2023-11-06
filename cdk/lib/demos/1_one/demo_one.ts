@@ -3,6 +3,7 @@ import { Construct } from "constructs";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as cloudwatch from "aws-cdk-lib/aws-cloudwatch";
 import { FisLambdaConcurrencyExperiment } from "./fis/fis-concurrency-experiment";
+import { NagSuppressions } from "cdk-nag";
 
 
 export class DemoOne extends Stack {
@@ -20,6 +21,25 @@ export class DemoOne extends Stack {
             runtime: lambda.Runtime.PYTHON_3_11,
             tracing: lambda.Tracing.ACTIVE,
         });
+
+        NagSuppressions.addResourceSuppressions(chaosLambdaFunction, [
+                {
+                    id: "AwsSolutions-IAM4",
+                    reason: "As this a demo sample using AWS Managed Policies for the Lambda execution role is permissive.",
+                    appliesTo: [
+                        {
+                            regex: "/(.*)(AWSLambdaBasicExecutionRole|service-role)(.*)$/g",
+                        },
+                    ],
+                },
+                {
+                    id: "AwsSolutions-IAM5",
+                    reason: "The AWS Managed policy contains wildcard permissions which is permissive for a sample demo.",
+                    appliesTo: ["Resource::*"]
+                },
+            ],
+            true
+        );
 
         // ------------------- CLOUDWATCH ALARM -------------------------------
 

@@ -7,6 +7,7 @@ import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
 import fs = require("fs");
 import path = require("path");
 import yaml = require("js-yaml");
+import { NagSuppressions } from "cdk-nag";
 
 export interface FisStackProps {
     lambdaFunction: lambdaNode.NodejsFunction;
@@ -76,6 +77,16 @@ export class FisLambdaConcurrencyExperiment extends Construct {
                     "logs:DescribeLogStreams",
                 ],
             })
+        );
+
+        NagSuppressions.addResourceSuppressions(ssmaPutConcurrencyStoreRole, [
+                {
+                    id: "AwsSolutions-IAM5",
+                    reason: "Very permissive policy to log to CloudWatch logs for the assumed role is allowed as it is a sample demo.",
+                    appliesTo: ["Resource::*"]
+                },
+            ],
+            true
         );
 
         // -------------------- FIS Log Group -------------------------------

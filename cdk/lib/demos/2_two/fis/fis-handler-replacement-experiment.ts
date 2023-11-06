@@ -6,6 +6,7 @@ import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
 import fs = require("fs");
 import path = require("path");
 import yaml = require("js-yaml");
+import { NagSuppressions } from "cdk-nag";
 
 
 export interface FisStackProps {
@@ -47,12 +48,6 @@ export class FisHandlerReplacementExperiment extends Construct {
                     new iam.ServicePrincipal("ssm.amazonaws.com")
                 ),
             }
-        );
-
-        const ssmaHandlerReplacmentStoreRoleAsCfn = ssmaHandlerReplacementRole.node.defaultChild as iam.CfnRole;
-        ssmaHandlerReplacmentStoreRoleAsCfn.addOverride(
-            "Properties.AssumeRolePolicyDocument.Statement.0.Principal.Service",
-            ["ssm.amazonaws.com", "iam.amazonaws.com"]
         );
 
         // allow the SSM document to get & put the chaos config & the handler info parameters to the Parameter Store
@@ -102,6 +97,15 @@ export class FisHandlerReplacementExperiment extends Construct {
                     "logs:DescribeLogStreams",
                 ],
             })
+        );
+
+        NagSuppressions.addResourceSuppressions(ssmaHandlerReplacementRole, [
+                {
+                    id: "AwsSolutions-IAM5",
+                    reason: "Very permissive policy to log to CloudWatch logs for the assumed role is allowed as it is a sample demo.",
+                },
+            ],
+            true
         );
 
         const startAutomation = {

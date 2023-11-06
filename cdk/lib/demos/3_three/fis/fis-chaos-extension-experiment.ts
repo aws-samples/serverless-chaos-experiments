@@ -6,6 +6,7 @@ import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
 import fs = require("fs");
 import path = require("path");
 import yaml = require("js-yaml");
+import { NagSuppressions } from "cdk-nag";
 
 
 export interface FisStackProps {
@@ -89,6 +90,15 @@ export class FisChaosExtensionProxyExperiment extends Construct {
                     "logs:DescribeLogStreams",
                 ],
             })
+        );
+
+        NagSuppressions.addResourceSuppressions(ssmaChaosExtensionProxyRole, [
+                {
+                    id: "AwsSolutions-IAM5",
+                    reason: "Very permissive policy to log to CloudWatch logs for the assumed role is allowed as it is a sample demo.",
+                },
+            ],
+            true
         );
 
         const startAutomation = {

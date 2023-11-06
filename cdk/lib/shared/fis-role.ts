@@ -1,6 +1,7 @@
 import { Construct } from "constructs";
 import { aws_iam as iam } from "aws-cdk-lib";
 import * as cdk from "aws-cdk-lib/core";
+import { NagSuppressions } from "cdk-nag";
 
 export interface FisRoleProps {
     fisRoleName: string;
@@ -84,6 +85,28 @@ export class FisRole extends Construct {
                     "logs:DescribeLogGroups",
                 ],
             })
+        );
+
+        // Enable adding suppressions to child constructs
+        NagSuppressions.addResourceSuppressions(
+            this.fisRole,
+            [
+                {
+                    id: "AwsSolutions-IAM5",
+                    reason: "The automation execution ID is not known upfront. A wildcard is needed to perform the required actions.",
+                    appliesTo: [
+                        {
+                            regex: "/(.*)(automation-execution)(.*)$/g",
+                        },
+                    ],
+                },
+                {
+                    id: "AwsSolutions-IAM5",
+                    reason: "The logs:CreateLogDelivery needs the wildcard in order for the resource-based policy to be changed by the FIS service. See: ",
+                    appliesTo: ["Resource::*"],
+                }
+            ],
+            true
         );
     }
 }
