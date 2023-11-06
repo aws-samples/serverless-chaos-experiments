@@ -1,7 +1,7 @@
 import { Construct } from "constructs";
 import { aws_fis as fis, aws_iam as iam, aws_ssm as ssm } from "aws-cdk-lib";
 import * as cdk from 'aws-cdk-lib/core';
-import { FisRoleDemo3 } from "./fis-role";
+import { FisRole } from "../../../shared/fis-role";
 import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
 import fs = require("fs");
 import path = require("path");
@@ -28,28 +28,28 @@ export class FisChaosExtensionProxyExperiment extends Construct {
 
 
         // -------------------- SSM Document -------------------------------
-
+        const automationDocName = 'ChaosExtensionProxy-FIS-Automation-Doc';
 
         const documentFile = path.join(__dirname, "documents/ssm-document-configure-chaos-extension.yml");
         const fileContent = fs.readFileSync(documentFile, "utf8");
 
-        const chaosExtensionProxy_cfnDocument = new ssm.CfnDocument(this, 'ChaosExtensionProxy-FIS-Automation-Doc', {
-            content: yaml.load(fileContent),
-            documentType: "Automation",
-            documentFormat: "YAML",
-            name: 'ChaosExtensionProxy-FIS-Automation-Doc'
-        }
+        const chaosExtensionProxy_cfnDocument = new ssm.CfnDocument(this, automationDocName, {
+                content: yaml.load(fileContent),
+                documentType: "Automation",
+                documentFormat: "YAML",
+                name: automationDocName
+            }
         );
 
         // -------------------- SSM Role (used during automation execution) -------------------------------
 
         const ssmaChaosExtensionProxyRole = new iam.Role(this, "ssma-ChaosExtensionProxy-role", {
-            roleName: 'ssmaChaosExtensionProxyRole',
-            assumedBy: new iam.CompositePrincipal(
-                new iam.ServicePrincipal("iam.amazonaws.com"),
-                new iam.ServicePrincipal("ssm.amazonaws.com")
-            ),
-        }
+                roleName: 'ssmaChaosExtensionProxyRole',
+                assumedBy: new iam.CompositePrincipal(
+                    new iam.ServicePrincipal("iam.amazonaws.com"),
+                    new iam.ServicePrincipal("ssm.amazonaws.com")
+                ),
+            }
         );
 
         const ssmaChaosExtensionProxyAsCfn = ssmaChaosExtensionProxyRole.node.defaultChild as iam.CfnRole;
@@ -72,8 +72,8 @@ export class FisChaosExtensionProxyExperiment extends Construct {
         // allow the SSM document to get the Lambda Layer version when calling the UpdateFunction API
         ssmaChaosExtensionProxyRole.addToPolicy(
             new iam.PolicyStatement({
-                resources: [ props.lambdaLayerArn ],
-                actions: [ "lambda:GetLayerVersion" ],
+                resources: [props.lambdaLayerArn],
+                actions: ["lambda:GetLayerVersion"],
             })
         );
 
@@ -110,10 +110,6 @@ export class FisChaosExtensionProxyExperiment extends Construct {
             },
         };
 
-        // -------------------- FIS Automation Role -------------------------------
-
-        const fisRole = new FisRoleDemo3(this, 'fis-role-demo3');
-
         // -------------------- FIS Log Group -------------------------------
 
         const fisLogGroup = new LogGroup(this, 'fis-log-group-demo-3', {
@@ -121,6 +117,16 @@ export class FisChaosExtensionProxyExperiment extends Construct {
             retention: RetentionDays.ONE_WEEK,
             removalPolicy: cdk.RemovalPolicy.DESTROY
         });
+
+        // -------------------- FIS Automation Role -------------------------------
+
+        const fisRole = new FisRole(this, 'fis-demo3-role', {
+            automationDocumentName: automationDocName,
+            fisRoleName: 'fis-demo3-role',
+            automationAssumedRoleArn: ssmaChaosExtensionProxyRole.roleArn,
+            fisLogGroupArn: fisLogGroup.logGroupArn
+        });
+
 
         // -------------------- FIS Experiment Template -------------------------------
 

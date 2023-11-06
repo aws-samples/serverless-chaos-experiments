@@ -1,7 +1,7 @@
 import { Construct } from "constructs";
 import { aws_fis as fis, aws_iam as iam, aws_ssm as ssm } from "aws-cdk-lib";
 import * as cdk from 'aws-cdk-lib/core';
-import { FisRole } from "./fis-role";
+import { FisRole } from "../../../shared/fis-role";
 import * as lambdaNode from "aws-cdk-lib/aws-lambda-nodejs";
 import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
 import fs = require("fs");
@@ -21,17 +21,20 @@ export class FisLambdaConcurrencyExperiment extends Construct {
         const accountId = cdk.Stack.of(this).account;
 
         // -------------------- SSM Document -------------------------------
+        const automationDocName = 'LambdaConcurrency-FIS-Automation-Doc';
 
         const documentFile = path.join(__dirname, "documents/ssm-document-put-concurrency.yml");
         const parameterstore_content = fs.readFileSync(documentFile, "utf8");
 
-        const parameterstore_cfnDocument = new ssm.CfnDocument(this, 'LambdaConcurrency-FIS-Automation-Doc', {
+        const parameterstore_cfnDocument = new ssm.CfnDocument(this, automationDocName, {
             content: yaml.load(parameterstore_content),
             documentType: "Automation",
             documentFormat: "YAML",
-            name: 'LambdaConcurrency-FIS-Automation-Doc'
+            name: automationDocName
         }
         );
+
+        const documentArn = `arn:aws:ssm:${region}:${accountId}:document/${parameterstore_cfnDocument.name}`;
 
         // -------------------- SSM Role (used during automation execution) -------------------------------
 
@@ -75,10 +78,6 @@ export class FisLambdaConcurrencyExperiment extends Construct {
             })
         );
 
-        // -------------------- FIS Automation Role -------------------------------
-
-        const fisRole = new FisRole(this, 'fis-role');
-
         // -------------------- FIS Log Group -------------------------------
 
         const fisLogGroup = new LogGroup(this, 'fis-log-group-demo-1', {
@@ -87,13 +86,22 @@ export class FisLambdaConcurrencyExperiment extends Construct {
             removalPolicy: cdk.RemovalPolicy.DESTROY
         });
 
+        // -------------------- FIS Automation Role -------------------------------
+
+        const fisRole = new FisRole(this, 'fis-demo1-role', {
+            automationDocumentName: automationDocName,
+            fisRoleName: 'fis-demo1-role',
+            automationAssumedRoleArn: ssmaPutConcurrencyStoreRole.roleArn,
+            fisLogGroupArn: fisLogGroup.logGroupArn
+        });
+
         // -------------------- FIS Experiment Template -------------------------------
 
         const startAutomation = {
             actionId: "aws:ssm:start-automation-execution",
             description: "Update SSM parameter used to inject chaos into Lambda function.",
             parameters: {
-                documentArn: `arn:aws:ssm:${region}:${accountId}:document/${parameterstore_cfnDocument.name}`,
+                documentArn: documentArn,
                 documentParameters: JSON.stringify({
                     DurationMinutes: "PT5M",
                     AutomationAssumeRole: ssmaPutConcurrencyStoreRole.roleArn,

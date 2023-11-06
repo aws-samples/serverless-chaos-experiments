@@ -1,7 +1,7 @@
 import { Construct } from "constructs";
 import { aws_fis as fis, aws_iam as iam, aws_ssm as ssm } from "aws-cdk-lib";
 import * as cdk from 'aws-cdk-lib/core';
-import { FisRoleDemo2 } from "./fis-role";
+import { FisRole } from "../../../shared/fis-role";
 import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
 import fs = require("fs");
 import path = require("path");
@@ -25,15 +25,16 @@ export class FisHandlerReplacementExperiment extends Construct {
 
 
         // -------------------- SSM Document -------------------------------
+        const automationDocName = 'HandlerReplacement-FIS-Automation-Doc';
 
         const documentFile = path.join(__dirname, "documents/ssm-document-handler-replacement.yml");
-        const parameterstore_content = fs.readFileSync(documentFile, "utf8");
+        const replaceHandler_content = fs.readFileSync(documentFile, "utf8");
 
-        const parameterstore_cfnDocument = new ssm.CfnDocument(this, 'HandlerReplacement-FIS-Automation-Doc', {
-            content: yaml.load(parameterstore_content),
+        const replaceHandler_cfnDocument = new ssm.CfnDocument(this, automationDocName, {
+            content: yaml.load(replaceHandler_content),
             documentType: "Automation",
             documentFormat: "YAML",
-            name: 'HandlerReplacement-FIS-Automation-Doc'
+            name: automationDocName
         }
         );
 
@@ -107,7 +108,7 @@ export class FisHandlerReplacementExperiment extends Construct {
             actionId: "aws:ssm:start-automation-execution",
             description: "Update SSM parameters and replace handler with Chaos Lambda Layer to inject chaos into Lambda function.",
             parameters: {
-                documentArn: `arn:aws:ssm:${region}:${accountId}:document/${parameterstore_cfnDocument.name}`,
+                documentArn: `arn:aws:ssm:${region}:${accountId}:document/${replaceHandler_cfnDocument.name}`,
                 documentParameters: JSON.stringify({
                     FunctionName: props.lambdaName,
                     ChaosLayerArn: props.lambdaLayerArn,
@@ -120,9 +121,6 @@ export class FisHandlerReplacementExperiment extends Construct {
             },
         };
 
-        // -------------------- FIS Automation Role -------------------------------
-
-        const fisRole = new FisRoleDemo2(this, 'fis-role-demo2');
 
         // -------------------- FIS Log Group -------------------------------
 
@@ -131,6 +129,16 @@ export class FisHandlerReplacementExperiment extends Construct {
             retention: RetentionDays.ONE_WEEK,
             removalPolicy: cdk.RemovalPolicy.DESTROY
         });
+
+        // -------------------- FIS Automation Role -------------------------------
+
+        const fisRole = new FisRole(this, 'fis-demo2-role', {
+            automationDocumentName: automationDocName,
+            fisRoleName: 'fis-demo2-role',
+            automationAssumedRoleArn: ssmaHandlerReplacementRole.roleArn,
+            fisLogGroupArn: fisLogGroup.logGroupArn
+        });
+
    
         // -------------------- FIS Experiment Template -------------------------------
 
