@@ -1,6 +1,6 @@
 import { Construct } from "constructs";
 import { aws_fis as fis, aws_iam as iam, aws_ssm as ssm } from "aws-cdk-lib";
-import * as cdk from 'aws-cdk-lib/core';
+import * as cdk from "aws-cdk-lib/core";
 import { FisRole } from "../../../shared/fis-role";
 import * as lambdaNode from "aws-cdk-lib/aws-lambda-nodejs";
 import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
@@ -21,17 +21,17 @@ export class FisLambdaConcurrencyExperiment extends Construct {
         const accountId = cdk.Stack.of(this).account;
 
         // -------------------- SSM Document -------------------------------
-        const automationDocName = 'LambdaConcurrency-FIS-Automation-Doc';
+        const automationDocName = "LambdaConcurrency-FIS-Automation-Doc";
 
         const documentFile = path.join(__dirname, "documents/ssm-document-put-concurrency.yml");
         const parameterstore_content = fs.readFileSync(documentFile, "utf8");
 
         const parameterstore_cfnDocument = new ssm.CfnDocument(this, automationDocName, {
-            content: yaml.load(parameterstore_content),
-            documentType: "Automation",
-            documentFormat: "YAML",
-            name: automationDocName
-        }
+                content: yaml.load(parameterstore_content),
+                documentType: "Automation",
+                documentFormat: "YAML",
+                name: automationDocName
+            }
         );
 
         const documentArn = `arn:aws:ssm:${region}:${accountId}:document/${parameterstore_cfnDocument.name}`;
@@ -39,12 +39,12 @@ export class FisLambdaConcurrencyExperiment extends Construct {
         // -------------------- SSM Role (used during automation execution) -------------------------------
 
         const ssmaPutConcurrencyStoreRole = new iam.Role(this, "ssma-put-concurrency-role", {
-            roleName: 'ssmaPutConcurrencyRole',
-            assumedBy: new iam.CompositePrincipal(
-                new iam.ServicePrincipal("iam.amazonaws.com"),
-                new iam.ServicePrincipal("ssm.amazonaws.com")
-            ),
-        }
+                roleName: "ssmaPutConcurrencyRole",
+                assumedBy: new iam.CompositePrincipal(
+                    new iam.ServicePrincipal("iam.amazonaws.com"),
+                    new iam.ServicePrincipal("ssm.amazonaws.com")
+                ),
+            }
         );
 
         const ssmaPutConcurrencyStoreRoleAsCfn = ssmaPutConcurrencyStoreRole.node.defaultChild as iam.CfnRole;
@@ -80,17 +80,17 @@ export class FisLambdaConcurrencyExperiment extends Construct {
 
         // -------------------- FIS Log Group -------------------------------
 
-        const fisLogGroup = new LogGroup(this, 'fis-log-group-demo-1', {
-            logGroupName: '/aws/fis/experiment/demo1',
+        const fisLogGroup = new LogGroup(this, "fis-log-group-demo-1", {
+            logGroupName: "/aws/fis/experiment/demo1",
             retention: RetentionDays.ONE_WEEK,
             removalPolicy: cdk.RemovalPolicy.DESTROY
         });
 
         // -------------------- FIS Automation Role -------------------------------
 
-        const fisRole = new FisRole(this, 'fis-demo1-role', {
+        const fisRole = new FisRole(this, "fis-demo1-role", {
             automationDocumentName: automationDocName,
-            fisRoleName: 'fis-demo1-role',
+            fisRoleName: "fis-demo1-role",
             automationAssumedRoleArn: ssmaPutConcurrencyStoreRole.roleArn,
             fisLogGroupArn: fisLogGroup.logGroupArn
         });

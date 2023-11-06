@@ -1,7 +1,7 @@
 import { CfnOutput, Duration, Stack } from "aws-cdk-lib";
-import { Construct } from 'constructs';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
+import { Construct } from "constructs";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as cloudwatch from "aws-cdk-lib/aws-cloudwatch";
 import { FisLambdaConcurrencyExperiment } from "./fis/fis-concurrency-experiment";
 
 
@@ -12,11 +12,11 @@ export class DemoOne extends Stack {
 
         // ------------------- LAMBDA FUNCTION -------------------------------
 
-        const chaosLambdaFunction = new lambda.Function(this, 'chaosLambdaDemo1', {
-            handler: 'lambda_function.lambda_handler',
+        const chaosLambdaFunction = new lambda.Function(this, "chaosLambdaDemo1", {
+            handler: "lambda_function.lambda_handler",
             functionName: `${this.stackName}-Func`,
-            description: 'Simple hello_world lambda function that will be used in chaos experiments',
-            code: lambda.Code.fromAsset('lib/resources/lambda/hello_world', {}),
+            description: "Simple hello_world lambda function that will be used in chaos experiments",
+            code: lambda.Code.fromAsset("lib/resources/lambda/hello_world", {}),
             runtime: lambda.Runtime.PYTHON_3_11,
             tracing: lambda.Tracing.ACTIVE,
         });
@@ -27,9 +27,9 @@ export class DemoOne extends Stack {
             period: Duration.minutes(1),
         });
 
-        const alarm = new cloudwatch.Alarm(this, 'cloudWatchAlarmDemo1', {
+        const alarm = new cloudwatch.Alarm(this, "cloudWatchAlarmDemo1", {
             alarmName: `${this.stackName}-CloudWatchAlarm`,
-            alarmDescription: 'Checks if we have too many throttled function invocations for the test function.',
+            alarmDescription: "Checks if we have too many throttled function invocations for the test function.",
 
             metric: functionThrottles,
             threshold: 10,
@@ -42,15 +42,15 @@ export class DemoOne extends Stack {
 
         // -------------------- FIS Experiment -------------------------------
 
-        new FisLambdaConcurrencyExperiment(this, 'fisLambdaConcurrencyExperimentDemo1', {
+        new FisLambdaConcurrencyExperiment(this, "fisLambdaConcurrencyExperimentDemo1", {
             lambdaFunction: chaosLambdaFunction,
             cloudWatchAlarmArn: alarm.alarmArn
         });
 
         // ------------------------ OUTPUTS ----------------------------------
 
-        new CfnOutput(this, 'FunctionName', { value: chaosLambdaFunction.functionName });
-        new CfnOutput(this, 'CloudWatchAlarmName', { value: alarm.alarmName });
+        new CfnOutput(this, "FunctionName", {value: chaosLambdaFunction.functionName});
+        new CfnOutput(this, "CloudWatchAlarmName", {value: alarm.alarmName});
 
     }
 }

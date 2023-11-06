@@ -1,7 +1,7 @@
 import { Duration, Stack } from "aws-cdk-lib";
-import { Construct } from 'constructs';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
+import { Construct } from "constructs";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as cloudwatch from "aws-cdk-lib/aws-cloudwatch";
 import { FisChaosExtensionProxyExperiment } from "./fis/fis-chaos-extension-experiment";
 
 
@@ -19,11 +19,11 @@ export class DemoThree extends Stack {
 
         // ------------------- LAMBDA FUNCTION -------------------------------
 
-        const chaosLambdaFunction = new lambda.Function(this, 'chaosLambdaDemo3', {
-            handler: 'lambda_function.lambda_handler',
+        const chaosLambdaFunction = new lambda.Function(this, "chaosLambdaDemo3", {
+            handler: "lambda_function.lambda_handler",
             functionName: `${this.stackName}-Func`,
-            description: 'Simple hello_world lambda function that will be used in chaos experiments',
-            code: lambda.Code.fromAsset('lib/resources/lambda/hello_world', {}),
+            description: "Simple hello_world lambda function that will be used in chaos experiments",
+            code: lambda.Code.fromAsset("lib/resources/lambda/hello_world", {}),
             runtime: lambda.Runtime.PYTHON_3_11,
             tracing: lambda.Tracing.ACTIVE,
             timeout: Duration.seconds(30)
@@ -35,9 +35,9 @@ export class DemoThree extends Stack {
             period: Duration.minutes(1),
         });
 
-        const alarm = new cloudwatch.Alarm(this, 'cloudWatchAlarmDemo3', {
+        const alarm = new cloudwatch.Alarm(this, "cloudWatchAlarmDemo3", {
             alarmName: `${this.stackName}-CloudWatchAlarm`,
-            alarmDescription: 'Checks if we have too many function errors for the test function.',
+            alarmDescription: "Checks if we have too many function errors for the test function.",
 
             metric: functionThrottles,
             threshold: 10,
@@ -50,14 +50,14 @@ export class DemoThree extends Stack {
 
         // -------------------- FIS Experiment -------------------------------
 
-        const fisExperiment = new FisChaosExtensionProxyExperiment(this, 'fisHandlerReplacementExperiment', {
+        const fisExperiment = new FisChaosExtensionProxyExperiment(this, "fisHandlerReplacementExperiment", {
             lambdaFunctionArn: chaosLambdaFunction.functionArn,
             lambdaName: chaosLambdaFunction.functionName,
             lambdaLayerArn: chaosLayerArn,
             chaosType: "response",
             chaosLatency: "10",
             chaosProbability: "1",
-            chaosResponse: '{"statusCode": 500, "body": "hello, Chaos!!!"}',
+            chaosResponse: "{\"statusCode\": 500, \"body\": \"hello, Chaos!!!\"}",
             cloudWatchAlarmArn: alarm.alarmArn
         });
     }

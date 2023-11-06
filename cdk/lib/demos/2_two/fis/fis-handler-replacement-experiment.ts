@@ -1,6 +1,6 @@
 import { Construct } from "constructs";
 import { aws_fis as fis, aws_iam as iam, aws_ssm as ssm } from "aws-cdk-lib";
-import * as cdk from 'aws-cdk-lib/core';
+import * as cdk from "aws-cdk-lib/core";
 import { FisRole } from "../../../shared/fis-role";
 import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
 import fs = require("fs");
@@ -25,28 +25,28 @@ export class FisHandlerReplacementExperiment extends Construct {
 
 
         // -------------------- SSM Document -------------------------------
-        const automationDocName = 'HandlerReplacement-FIS-Automation-Doc';
+        const automationDocName = "HandlerReplacement-FIS-Automation-Doc";
 
         const documentFile = path.join(__dirname, "documents/ssm-document-handler-replacement.yml");
         const replaceHandler_content = fs.readFileSync(documentFile, "utf8");
 
         const replaceHandler_cfnDocument = new ssm.CfnDocument(this, automationDocName, {
-            content: yaml.load(replaceHandler_content),
-            documentType: "Automation",
-            documentFormat: "YAML",
-            name: automationDocName
-        }
+                content: yaml.load(replaceHandler_content),
+                documentType: "Automation",
+                documentFormat: "YAML",
+                name: automationDocName
+            }
         );
 
         // -------------------- SSM Role (used during automation execution) -------------------------------
 
         const ssmaHandlerReplacementRole = new iam.Role(this, "ssma-put-parameterstore-role", {
-                roleName: 'ssmaHandlerReplacementRole',
+                roleName: "ssmaHandlerReplacementRole",
                 assumedBy: new iam.CompositePrincipal(
                     new iam.ServicePrincipal("iam.amazonaws.com"),
                     new iam.ServicePrincipal("ssm.amazonaws.com")
                 ),
-        }
+            }
         );
 
         const ssmaHandlerReplacmentStoreRoleAsCfn = ssmaHandlerReplacementRole.node.defaultChild as iam.CfnRole;
@@ -74,8 +74,8 @@ export class FisHandlerReplacementExperiment extends Construct {
 
         ssmaHandlerReplacementRole.addToPolicy(
             new iam.PolicyStatement({
-                resources: [ props.lambdaFunctionArn ],
-                actions: [ 
+                resources: [props.lambdaFunctionArn],
+                actions: [
                     "lambda:UpdateFunctionConfiguration",
                     "lambda:GetFunctionConfiguration",
                     "lambda:GetFunction"
@@ -85,8 +85,8 @@ export class FisHandlerReplacementExperiment extends Construct {
 
         ssmaHandlerReplacementRole.addToPolicy(
             new iam.PolicyStatement({
-                resources: [ props.lambdaLayerArn ],
-                actions: [ "lambda:GetLayerVersion" ],
+                resources: [props.lambdaLayerArn],
+                actions: ["lambda:GetLayerVersion"],
             })
         );
 
@@ -115,7 +115,7 @@ export class FisHandlerReplacementExperiment extends Construct {
                     DurationMinutes: "PT5M",
                     AutomationAssumeRole: ssmaHandlerReplacementRole.roleArn,
                     ChaosParameterName: props.chaosParameterName,
-                    ChaosParameterValue: '{ "fault_type": "exception", "is_enabled": false, "delay": 400, "error_code": 404, "exception_msg": "This is chaos", "rate": 1}',
+                    ChaosParameterValue: "{ \"fault_type\": \"exception\", \"is_enabled\": false, \"delay\": 400, \"error_code\": 404, \"exception_msg\": \"This is chaos\", \"rate\": 1}",
                 }),
                 maxDuration: "PT10M",
             },
@@ -124,22 +124,22 @@ export class FisHandlerReplacementExperiment extends Construct {
 
         // -------------------- FIS Log Group -------------------------------
 
-        const fisLogGroup = new LogGroup(this, 'fis-log-group-demo-2', {
-            logGroupName: '/aws/fis/experiment/demo2',
+        const fisLogGroup = new LogGroup(this, "fis-log-group-demo-2", {
+            logGroupName: "/aws/fis/experiment/demo2",
             retention: RetentionDays.ONE_WEEK,
             removalPolicy: cdk.RemovalPolicy.DESTROY
         });
 
         // -------------------- FIS Automation Role -------------------------------
 
-        const fisRole = new FisRole(this, 'fis-demo2-role', {
+        const fisRole = new FisRole(this, "fis-demo2-role", {
             automationDocumentName: automationDocName,
-            fisRoleName: 'fis-demo2-role',
+            fisRoleName: "fis-demo2-role",
             automationAssumedRoleArn: ssmaHandlerReplacementRole.roleArn,
             fisLogGroupArn: fisLogGroup.logGroupArn
         });
 
-   
+
         // -------------------- FIS Experiment Template -------------------------------
 
         new fis.CfnExperimentTemplate(

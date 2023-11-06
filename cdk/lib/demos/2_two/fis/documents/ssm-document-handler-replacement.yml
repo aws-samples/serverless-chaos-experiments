@@ -139,7 +139,7 @@ mainSteps:
           ssm_client.put_parameter(Name='/ChaosInjection/' + function_name + '_handler_ssmparam', Value=existing_handler,Type='String',Overwrite=True)
           ssm_client.put_parameter(Name='/ChaosInjection/' + function_name + '_timeout_ssmparam', Value=str(existing_timeout),Type='String',Overwrite=True)
           ssm_client.put_parameter(Name='/ChaosInjection/' + function_name + '_memory_ssmparam', Value=str(existing_memory),Type='String',Overwrite=True)
-          
+        
           # Update target lambda - inject chaos layer, update handler and update the timeout to 5 mins to allow for latency injection. 
           new_handler="pychaoslayer.layer_handler"
           lambda_config_details = lambda_client.update_function_configuration(FunctionName=function_name,Layers=[layer_arn], Timeout=300,Handler=new_handler)
@@ -180,7 +180,7 @@ mainSteps:
           # get existing handler
           function_name = event["FunctionName"]
           layer_arn = event["LayerArn"]
-          
+        
           # get older values  in param store for rollback
           ssm_client = boto3.client("ssm")
           old_handler = ssm_client.get_parameter(Name='/ChaosInjection/' + function_name + '_handler_ssmparam')['Parameter']['Value']
@@ -191,9 +191,9 @@ mainSteps:
 
           lambda_client = boto3.client("lambda") 
           current_config = lambda_client.get_function(FunctionName=function_name)
-    
+        
           current_layers = current_config['Configuration']['Layers']
           remove_layers = [layer for layer in current_layers if layer['Arn'] != layer_arn ]
-    
+        
           lambda_config_details = lambda_client.update_function_configuration(FunctionName=function_name,Layers=remove_layers ,Timeout=int(old_timeout),Handler=old_handler,Environment={},MemorySize=int(old_memory)) 
           return               

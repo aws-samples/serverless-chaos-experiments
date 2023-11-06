@@ -114,7 +114,7 @@ mainSteps:
 
         def handler(event, context):
           lambda_client = boto3.client("lambda")
-          
+        
           function_name = event["FunctionName"]
           layer_arn = event["LayerArn"]
           chaos_type = event["ChaosType"]
@@ -151,7 +151,7 @@ mainSteps:
             existing_env_variables["Variables"].update(chaos_variables)
           else:
             existing_env_variables = { "Variables": chaos_variables }
-              
+        
           lambda_config_existing = lambda_client.update_function_configuration(
             FunctionName=function_name,
             Layers=layer_arns,
@@ -212,7 +212,7 @@ mainSteps:
               existing_env.get("Variables").pop(key, None)
           else:
             existing_env = {}
-              
+        
           lambda_config_existing = lambda_client.update_function_configuration(
             FunctionName=function_name,
             Layers=layer_arns,

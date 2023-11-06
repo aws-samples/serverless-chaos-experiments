@@ -1,6 +1,6 @@
 import { Construct } from "constructs";
 import { aws_fis as fis, aws_iam as iam, aws_ssm as ssm } from "aws-cdk-lib";
-import * as cdk from 'aws-cdk-lib/core';
+import * as cdk from "aws-cdk-lib/core";
 import { FisRole } from "../../../shared/fis-role";
 import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
 import fs = require("fs");
@@ -28,7 +28,7 @@ export class FisChaosExtensionProxyExperiment extends Construct {
 
 
         // -------------------- SSM Document -------------------------------
-        const automationDocName = 'ChaosExtensionProxy-FIS-Automation-Doc';
+        const automationDocName = "ChaosExtensionProxy-FIS-Automation-Doc";
 
         const documentFile = path.join(__dirname, "documents/ssm-document-configure-chaos-extension.yml");
         const fileContent = fs.readFileSync(documentFile, "utf8");
@@ -44,7 +44,7 @@ export class FisChaosExtensionProxyExperiment extends Construct {
         // -------------------- SSM Role (used during automation execution) -------------------------------
 
         const ssmaChaosExtensionProxyRole = new iam.Role(this, "ssma-ChaosExtensionProxy-role", {
-                roleName: 'ssmaChaosExtensionProxyRole',
+                roleName: "ssmaChaosExtensionProxyRole",
                 assumedBy: new iam.CompositePrincipal(
                     new iam.ServicePrincipal("iam.amazonaws.com"),
                     new iam.ServicePrincipal("ssm.amazonaws.com")
@@ -112,17 +112,17 @@ export class FisChaosExtensionProxyExperiment extends Construct {
 
         // -------------------- FIS Log Group -------------------------------
 
-        const fisLogGroup = new LogGroup(this, 'fis-log-group-demo-3', {
-            logGroupName: '/aws/fis/experiment/demo3',
+        const fisLogGroup = new LogGroup(this, "fis-log-group-demo-3", {
+            logGroupName: "/aws/fis/experiment/demo3",
             retention: RetentionDays.ONE_WEEK,
             removalPolicy: cdk.RemovalPolicy.DESTROY
         });
 
         // -------------------- FIS Automation Role -------------------------------
 
-        const fisRole = new FisRole(this, 'fis-demo3-role', {
+        const fisRole = new FisRole(this, "fis-demo3-role", {
             automationDocumentName: automationDocName,
-            fisRoleName: 'fis-demo3-role',
+            fisRoleName: "fis-demo3-role",
             automationAssumedRoleArn: ssmaChaosExtensionProxyRole.roleArn,
             fisLogGroupArn: fisLogGroup.logGroupArn
         });
