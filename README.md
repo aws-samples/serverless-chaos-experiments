@@ -46,7 +46,7 @@ This demo showcases how one can manipulate the Lambda configuration. In this cas
 2. Check the configuration of the Lambda function, the *Reserved Concurrency* should be now set to the value defined in the [FIS experiment](cdk/lib/demos/1_one/fis/fis-concurrency-experiment.ts).
 3. Trigger a rollback by setting the alarm state manually
    ```
-   $ALARM_NAME=<ALARM_NAME>
+   ALARM_NAME=<ALARM_NAME>
    aws cloudwatch set-alarm-state --alarm-name $ALARM_NAME --state-value ALARM --state-reason TEST_ROLLBACK
    ```
 
@@ -67,7 +67,7 @@ It leverages the method explained in this [blog post](https://aws.amazon.com/blo
 3. Test the Lambda function by running the function using a test event.
 4. Trigger a rollback by setting the alarm state manually
    ```
-   $ALARM_NAME=<ALARM_NAME>
+   ALARM_NAME=<ALARM_NAME>
    aws cloudwatch set-alarm-state --alarm-name $ALARM_NAME --state-value ALARM --state-reason TEST_ROLLBACK
    ```
 
@@ -87,7 +87,7 @@ Here we make use a Lambda extension in order to inject chaos regardless of the r
 3. Test the Lambda function by running the function using a test event.
 4. Trigger a rollback by setting the alarm state manually
    ```
-   $ALARM_NAME=<ALARM_NAME>
+   ALARM_NAME=<ALARM_NAME>
    aws cloudwatch set-alarm-state --alarm-name $ALARM_NAME --state-value ALARM --state-reason TEST_ROLLBACK
    ```
 
