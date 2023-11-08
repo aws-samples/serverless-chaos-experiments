@@ -1,0 +1,19 @@
+*.js
+!index.js
+!jest.config.js
+*.d.ts
+node_modules
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out
+
+# Chaos Toolkit
+chaostoolkit.log
+*journal.json
+
+# temp folder
+/temp
+
+# any virtual environments
+/*env
