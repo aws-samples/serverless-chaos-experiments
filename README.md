@@ -27,7 +27,7 @@ To do this just specify the stack in the deploy command, e.g. `cdk deploy Server
 > [!IMPORTANT]
 > This demo uses SSM documents to define the actions executed during the FIS experiments. They include input parameters in order to be more generic. In production environments it is important to validate those inputs (see [here](https://docs.aws.amazon.com/systems-manager/latest/userguide/documents-syntax-data-elements-parameters.html)).
 
-## Demo 1
+## Demo 1: Configuration Manipulation
 
 ![Demo 1: Update function concurrency](images/demo1.png)
 
@@ -50,7 +50,7 @@ This demo showcases how one can manipulate the Lambda configuration. In this cas
    aws cloudwatch set-alarm-state --alarm-name $ALARM_NAME --state-value ALARM --state-reason TEST_ROLLBACK
    ```
 
-## Demo 2
+## Demo 2: Handler Replacement Approach
 
 ![Demo 2: Handler replacement approach](images/demo2.png)
 
@@ -71,7 +71,7 @@ It leverages the method explained in this [blog post](https://aws.amazon.com/blo
    aws cloudwatch set-alarm-state --alarm-name $ALARM_NAME --state-value ALARM --state-reason TEST_ROLLBACK
    ```
 
-## Demo 3
+## Demo 3: Runtime API Proxy pattern
 
 ![Demo 3: Runtime API Proxy pattern](images/demo3.png)
 
